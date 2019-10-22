@@ -67,14 +67,21 @@ const parser = (collections, project) => {
   };
 };
 const parserApi = api => {
-  const { title, path, method, req_headers, desc } = api;
+  const { title, path, method, req_headers, desc, req_query } = api;
 
   const body = parseResBody(api);
+  const query = parseQuery(api);
   return {
     name: title,
     request: {
       // TODO: 变量动态化
-      url: `{{baseUrl}}${path}`,
+      url: {
+        raw: `{{baseUrl}}${path}`,
+        host: ["{{baseUrl}}"],
+        path: path.split('/'),
+        query: query,
+        variable: []
+      },
       method: method,
       header: parserHeader(req_headers),
       body,
@@ -83,6 +90,16 @@ const parserApi = api => {
     // TODO: 补全response
     response: []
   };
+};
+const parseQuery = api => {
+  const { req_query } = api;
+  return req_query.map(({ required, name, example, desc }) => ({
+    key: name,
+    value: example,
+    equals: true,
+    description: desc,
+    disabled: required === "0"
+  }));
 };
 
 const parseResBody = api => {
