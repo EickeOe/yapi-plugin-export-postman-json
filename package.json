@@ -1,0 +1,23 @@
+{
+  "name": "yapi-plugin-export-postman-json",
+  "version": "0.0.1",
+  "description": "yapi postman json",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [
+    "yapi postman json"
+  ],
+  "author": "gt",
+  "license": "ISC",
+  "dependencies": {
+    "eslint": "^5.15.1"
+  },
+  "devDependencies": {
+    "eslint": "^5.15.1",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.16.0"
+  }
+}
