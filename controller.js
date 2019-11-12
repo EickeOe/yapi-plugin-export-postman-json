@@ -37,7 +37,6 @@ function handleExistId(data) {
   return data;
 }
 
-
 const parser = (collections, project) => {
   const { name } = project;
   return {
@@ -71,6 +70,12 @@ const parserApi = api => {
 
   const body = parseResBody(api);
   const query = parseQuery(api);
+
+  let pathTemp = path.split("/");
+  let temp, pathArr;
+  if (pathTemp.length && !pathTemp[0]) {
+    [temp, ...pathArr] = pathTemp;
+  }
   return {
     name: title,
     request: {
@@ -78,7 +83,7 @@ const parserApi = api => {
       url: {
         raw: `{{baseUrl}}${path}`,
         host: ["{{baseUrl}}"],
-        path: path.split('/'),
+        path: pathArr | pathTemp,
         query: query,
         variable: []
       },
@@ -103,7 +108,7 @@ const parseQuery = api => {
 };
 
 const parseResBody = api => {
-  const { req_body_type, req_body_other } = api;
+  const { req_body_type, req_body_other, req_body_form } = api;
   let mode = "";
   let body_data;
   if (req_body_type === "json" || req_body_type === "raw") {
@@ -114,6 +119,16 @@ const parseResBody = api => {
   }
   if (req_body_other) {
     body_data = JSON.stringify(JSON.parse(req_body_other).properties);
+  } else if (req_body_form) {
+    body_data = req_body_form.map(item => {
+      const { name, type, example, required } = item;
+      return {
+        key: name,
+        value: example,
+        description: name,
+        type
+      };
+    });
   }
   return {
     mode,
@@ -169,7 +184,7 @@ class exportController extends baseController {
     try {
       curProject = await this.projectModel.get(pid);
       // console.log(curProject)
-      
+
       ctx.set("Content-Type", "application/octet-stream");
       const list = await this.handleListClass(pid, status);
 
@@ -178,11 +193,14 @@ class exportController extends baseController {
       // console.log(JSON.stringify(data));
       const log = await this.logModel.listWithPaging(pid, "project", 1, 10000);
 
-      ctx.set('Content-Disposition', `attachment; filename=${encodeURI(`${curProject.name}-Postman`)}.json`);
-      return (ctx.body = parser(data,curProject));
+      ctx.set(
+        "Content-Disposition",
+        `attachment; filename=${encodeURI(`${curProject.name}-Postman`)}.json`
+      );
+      return (ctx.body = parser(data, curProject));
     } catch (error) {
-      yapi.commons.log(error, 'error');
-      ctx.body = yapi.commons.resReturn(null, 502, '下载出错');
+      yapi.commons.log(error, "error");
+      ctx.body = yapi.commons.resReturn(null, 502, "下载出错");
     }
   }
 }
